@@ -13,3 +13,6 @@ before_script:
   - ./magic.exp
   - make
   - echo "It's ready"
+  - cd ../
+  - npm install
+  - nodeunit test.js
