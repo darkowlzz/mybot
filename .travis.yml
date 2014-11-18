@@ -6,4 +6,5 @@ before_script:
   - cp magic.exp ./Unreal3.2.10.4
   - cd ./Unreal3.2.10.4
   - chmod +x magic.exp
+  - which expect
   - ./magic.exp
