@@ -1,0 +1,18 @@
+#!/usr/bin/expect
+
+spawn "./Config"
+
+expect "Enter to continue"
+send "\r"
+
+expect "Release Notes"
+send "q"
+
+expect "Enter to continue"
+send "\r"
+
+for {set i 0} {$i < 14} {incr i 1} {
+  send "\r"
+}
+
+interact
