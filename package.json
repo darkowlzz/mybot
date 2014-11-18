@@ -1,0 +1,23 @@
+{
+  "name": "mybot",
+  "version": "0.0.0",
+  "description": "an irc bot",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darkowlzz/mybot.git"
+  },
+  "author": "Sunny <indiasuny000@gmail.com> (darkowlzz)",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/darkowlzz/mybot/issues"
+  },
+  "homepage": "https://github.com/darkowlzz/mybot",
+  "dependencies": {
+    "irc": "^0.3.7",
+    "request": "^2.48.0"
+  }
+}
