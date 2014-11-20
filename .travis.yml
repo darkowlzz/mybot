@@ -13,8 +13,10 @@ install:
   - which expect
   - ./magic.exp
   - make
+  - cp ../unrealircd.conf .
+  - ./unreal start
   - echo "It's ready"
   - cd ../
   - npm install
 script:
-  - nodeunit test.js
+  - mocha
