@@ -20,3 +20,5 @@ install:
   - npm install
 script:
   - mocha
+notifications:
+  irc: "irc.freenode.net##til"
