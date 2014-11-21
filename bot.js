@@ -1,68 +1,79 @@
+module.exports = Bot;
+
 var Q = require('q');
 var http = require('http');
 var irc = require('irc');
 var request = require('request');
 
-var config = {
-  channels: ['#hello'],
-  server: '127.0.0.1',
-  autoConnect: true
-};
 
 /**
  * Bot class
  */
-function Bot(data) {
+function Bot(config) {
   var that = this;
 
-  that.name = data.name || 'zoobot';
-  that.network = data.network || '127.0.0.1';
-  that.channel = config.channels[0];
-  that.buffer = '';
+  that.nick = config.nick || 'zoobot';
+  that.network = config.server || '127.0.0.1';
+  that.channels = config.channels;
+  that.buffer = {};
+  that.channels.forEach(function(channel, index) {
+    that.buffer[channel] = '';
+  });
 
-  that.client = new irc.Client(config.server, that.name, {
+  that.client = new irc.Client(config.network, that.nick, {
     autoConnect: false
   });
+  that.addErrorListener();
 }
 
+// Connect to the server and channels
 Bot.prototype.connect = function() {
   var that = this;
   return Q.Promise(function(resolve, reject) {
     that.client.connect(5, function(input) {
-      console.log('connected!');
-      that.client.join(that.channel, function(input) {
-        console.log('joined ' + that.channel);
-        resolve('done');
-      })
-    });
+      that.channels.forEach(function(channel, index, channels) {
+        that.client.join(channel, function(input) {
+          if (index == (channels.length - 1)) {
+            resolve('done');
+          }
+        })
+      });
+    })
   });
 };
 
+// Add message listener
 Bot.prototype.addMessageListener = function() {
   var that = this;
   that.client.addListener('message', function (from, to, text) {
-    if (from !== that.name) {
-      console.log('Storing in buffer: ' + text);
-      that.buffer = text;
+    if (from !== that.nick) {
+      that.buffer[to] = text;
     }
 
-    if (text.indexOf(that.name) > -1) {
-      console.log(that.name + ': I was mentioned');
+    if (text.indexOf(that.nick) > -1) {
       if (text.indexOf('hi') > -1) {
-        console.log(that.name + ': replying...');
-        that.say('hello there ' + from);
+        that.say(to, 'hello there ' + from);
       }
     }
   });
 };
 
-Bot.prototype.say = function(msg) {
+// Add error listener
+Bot.prototype.addErrorListener = function() {
   var that = this;
-  that.client.say(config.channels[0], msg);
+  that.client.addListener('error', function(message) {
+    console.log('error: ', message);
+  });
 };
 
+// Send message to a channel
+Bot.prototype.say = function(channel, msg) {
+  var that = this;
+  that.client.say(channel, msg);
+};
+
+// Kill the bot
 Bot.prototype.kill = function() {
   var that = this;
   that.client.disconnect('killed');
 };
-module.exports = Bot;
