@@ -26,7 +26,7 @@ function Bot(config) {
   that.addErrorListener();
 }
 
-// Connect to the server and channels
+// Connect to the server and channels, returns a Promise
 Bot.prototype.connect = function() {
   var that = this;
   return Q.Promise(function(resolve, reject) {
@@ -58,6 +58,16 @@ Bot.prototype.addMessageListener = function() {
   });
 };
 
+// Add part listener
+Bot.prototype.addPartListener = function() {
+  var that = this;
+  that.client.addListener('part', function (channel, nick, reason, message) {
+    if (nick !== that.nick) {
+      that.buffer[channel] = nick + ' has left(' + reason + ')';
+    }
+  });
+};
+
 // Add error listener
 Bot.prototype.addErrorListener = function() {
   var that = this;
@@ -70,6 +80,12 @@ Bot.prototype.addErrorListener = function() {
 Bot.prototype.say = function(channel, msg) {
   var that = this;
   that.client.say(channel, msg);
+};
+
+// Part from a channel, returns a Promise
+Bot.prototype.part = function(channel, msg) {
+  var that = this;
+  that.client.part(channel, msg);
 };
 
 // Kill the bot
