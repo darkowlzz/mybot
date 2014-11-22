@@ -17,7 +17,16 @@ var config2 = {
   server: '127.0.0.1'
 };
 
-// Create 2 bots, join 2 channels and mention each other.
+// A short blocking delay
+function waitAlittle() {
+  return Q.Promise(function(resolve, reject) {
+    Q.delay(5000).then(function() {
+      resolve('done');
+    });
+  });
+}
+
+
 describe('test bot', function() {
   var realbot, testbot;
 
@@ -35,8 +44,10 @@ describe('test bot', function() {
     .then(function(result) {
       realbot.addMessageListener();
       realbot.addPartListener();
+      realbot.addJoinListener();
       testbot.addMessageListener();
       testbot.addPartListener();
+      testbot.addJoinListener();
 
       realbot.say(realbot.channels[0], 'hi, my name is ' + realbot.nick);
       testbot.say(testbot.channels[0], 'hello, my name is ' + testbot.nick);
@@ -48,17 +59,12 @@ describe('test bot', function() {
     });
   });
 
-  describe('mention test', function() {
+  describe('test mention', function() {
     it('should reply when greeted', function(done) {
       this.timeout(40000);
       testbot.say(testbot.channels[0], 'hi ' + realbot.nick);
       testbot.say(testbot.channels[1], 'hi ' + realbot.nick);
-
-      Q.Promise(function(resolve, reject) {
-        Q.delay(5000).then(function() {
-          resolve('done');
-        });
-      })
+      waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(testbot.nick);
         testbot.buffer[testbot.channels[1]].should.containEql(testbot.nick);
@@ -70,18 +76,57 @@ describe('test bot', function() {
     });
   });
 
-  describe('part test', function() {
+  describe('test part', function() {
     it('should listen to part event', function(done) {
       this.timeout(40000);
       realbot.part(realbot.channels[0], 'gtg');
-      Q.Promise(function(resolve, reject) {
-        Q.delay(5000).then(function() {
-          resolve('done');
-        });
-      })
+      waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(realbot.nick);
         testbot.buffer[testbot.channels[0]].should.containEql('gtg');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+  });
+
+  describe('test join', function() {
+    it('should listen to join event', function(done) {
+      this.timeout(40000);
+      realbot.join(realbot.channels[0]);
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql(realbot.nick);
+        testbot.buffer[testbot.channels[0]].should.containEql('joined');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+  });
+
+  describe('custom listener test', function() {
+    it('should reply as per the defined action', function(done) {
+      this.timeout(40000);
+
+      realbot.addCustomListener('message', function(from, to, text) {
+        if (text.indexOf(this.nick) > -1) {
+          if (text.indexOf('what is irc') > -1) {
+            this.say(to, 'Internet Relay Chat');
+          }
+        }
+      });
+
+      waitAlittle()
+      .then(function(result) {
+        testbot.say(testbot.channels[0], realbot.nick + ' what is irc?');
+        return waitAlittle();
+      })
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('Internet Relay Chat');
         done();
       })
       .catch(function(err) {

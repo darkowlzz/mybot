@@ -58,10 +58,20 @@ Bot.prototype.addMessageListener = function() {
   });
 };
 
+// Add join listener
+Bot.prototype.addJoinListener = function() {
+  var that = this;
+  that.client.addListener('join', function (channel, nick) {
+    if (nick !== that.nick) {
+      that.buffer[channel] = nick + ' has joined';
+    }
+  });
+};
+
 // Add part listener
 Bot.prototype.addPartListener = function() {
   var that = this;
-  that.client.addListener('part', function (channel, nick, reason, message) {
+  that.client.addListener('part', function (channel, nick, reason) {
     if (nick !== that.nick) {
       that.buffer[channel] = nick + ' has left(' + reason + ')';
     }
@@ -76,16 +86,37 @@ Bot.prototype.addErrorListener = function() {
   });
 };
 
+/**
+ * Add custom listener
+ *
+ * @param {String} event
+ *    event to listen
+ * @param {function} callback
+ *    action to be performed
+ */
+Bot.prototype.addCustomListener = function(event, callback) {
+  var that = this;
+  that.client.addListener(event, function (from, to, text) {
+    callback.call(that, from, to, text);
+  });
+};
+
 // Send message to a channel
 Bot.prototype.say = function(channel, msg) {
   var that = this;
   that.client.say(channel, msg);
 };
 
-// Part from a channel, returns a Promise
+// Part from a channel
 Bot.prototype.part = function(channel, msg) {
   var that = this;
   that.client.part(channel, msg);
+};
+
+// Join a channel
+Bot.prototype.join = function(channel) {
+  var that = this;
+  that.client.join(channel);
 };
 
 // Kill the bot
