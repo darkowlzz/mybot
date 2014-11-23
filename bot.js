@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = Bot;
 
 var Q = require('q');
@@ -157,8 +159,8 @@ Bot.prototype.loadAIML = function(option) {
   }
 
   that.addCustomMessageListener('message', function(from, to, text) {
-    var self = this,
-        tempText = text.split(' ');
+    var self = this;
+    var tempText = text.split(' ');
     // checking just the first word to avoid mid sentence mentions
     if (_.first(tempText).indexOf(self.nick.toLowerCase()) > -1) {
       text = text.split(':');  // get rid of mentioned name
@@ -190,7 +192,7 @@ Bot.prototype.remember = function(option) {
   that.addCustomMessageListener('message', function(from, to, text) {
     text = text.toLowerCase();
     var self = this;
-        tempText = text.split(' ');
+    var tempText = text.split(' ');
     if (_.first(tempText).indexOf(self.nick.toLowerCase()) > -1) {
       // Look for the pattern "remember x is y"
       if (tempText[1].indexOf('!remember') > -1) {
