@@ -4,6 +4,7 @@ var Q = require('q');
 var http = require('http');
 var irc = require('irc');
 var request = require('request');
+var _ = require('underscore');
 var AIMLInterpreter = require('aimlinterpreter');
 
 
@@ -147,9 +148,7 @@ Bot.prototype.loadAIML = function(option) {
 
   if (option === 'all') {
     aimlFiles = fs.readdirSync('./aiml/');
-    aimlFiles.forEach(function(element, index) {
-      aimlFiles[index] = './aiml/' + element;
-    });
+    aimlFiles = _.map(aimlFiles, function(file){ return './aiml/' + file});
     aimlInterpreter.loadAIMLFilesIntoArray(aimlFiles);
   }
   else {
