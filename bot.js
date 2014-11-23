@@ -4,6 +4,7 @@ var Q = require('q');
 var http = require('http');
 var irc = require('irc');
 var request = require('request');
+var AIMLInterpreter = require('aimlinterpreter');
 
 
 /**
@@ -20,7 +21,7 @@ function Bot(config) {
     that.buffer[channel] = '';
   });
 
-  that.client = new irc.Client(config.network, that.nick, {
+  that.client = new irc.Client(that.network, that.nick, {
     autoConnect: false
   });
   that.addErrorListener();
@@ -36,9 +37,9 @@ Bot.prototype.connect = function() {
           if (index == (channels.length - 1)) {
             resolve('done');
           }
-        })
+        });
       });
-    })
+    });
   });
 };
 
@@ -94,7 +95,7 @@ Bot.prototype.addErrorListener = function() {
  * @param {function} callback
  *    action to be performed
  */
-Bot.prototype.addCustomListener = function(event, callback) {
+Bot.prototype.addCustomMessageListener = function(event, callback) {
   var that = this;
   that.client.addListener(event, function (from, to, text) {
     callback.call(that, from, to, text);
@@ -123,4 +124,48 @@ Bot.prototype.join = function(channel) {
 Bot.prototype.kill = function() {
   var that = this;
   that.client.disconnect('killed');
+};
+
+/**
+ * LoadAIML
+ *
+ * @param {Object} option
+ *    If no argument is passed, the default aiml files are loaded.
+ *    The argument should be a list of filepath to be loaded.
+ *    e.g.: ['file1.aiml', 'file2.aiml']
+ */
+Bot.prototype.loadAIML = function(option) {
+  var aimlFiles;
+  if (option === undefined) {
+    option = 'all';
+  }
+  else if (typeof(option) === 'object') {
+    aimlFiles = option;
+  }
+  var that = this;
+  var aimlInterpreter = new AIMLInterpreter({name: that.nick});
+
+  if (option === 'all') {
+    aimlFiles = fs.readdirSync('./aiml/');
+    aimlFiles.forEach(function(element, index) {
+      aimlFiles[index] = './aiml/' + element;
+    });
+    aimlInterpreter.loadAIMLFilesIntoArray(aimlFiles);
+  }
+  else {
+    aimlInterpreter.loadAIMLFilesIntoArray(aimlFiles);
+  }
+
+  that.addCustomMessageListener('message', function(from, to, text) {
+    var self = this;
+    if (text.indexOf(self.nick) > -1) {
+      text = text.split(':');
+      text.shift();
+      text = text.join(':');
+      aimlInterpreter.findAnswerInLoadedAIMLFiles(
+          text, function(answer, wildCardArray) {
+            self.say(to, from + ': ' + answer);
+          });
+    }
+  });
 };

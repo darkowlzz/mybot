@@ -108,11 +108,11 @@ describe('test bot', function() {
     });
   });
 
-  describe('custom listener test', function() {
+  describe('test custom message listener', function() {
     it('should reply as per the defined action', function(done) {
       this.timeout(40000);
 
-      realbot.addCustomListener('message', function(from, to, text) {
+      realbot.addCustomMessageListener('message', function(from, to, text) {
         if (text.indexOf(this.nick) > -1) {
           if (text.indexOf('what is irc') > -1) {
             this.say(to, 'Internet Relay Chat');
@@ -126,7 +126,36 @@ describe('test bot', function() {
         return waitAlittle();
       })
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('Internet Relay Chat');
+        testbot.buffer[testbot.channels[0]].should.containEql(
+                                           'Internet Relay Chat');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+  });
+
+  describe('test loadAIML', function() {
+    it('should reply as per AIML', function(done) {
+      this.timeout(40000);
+
+      realbot.loadAIML();
+      waitAlittle()
+      .then(function(result) {
+        testbot.say(testbot.channels[0], realbot.nick +
+                    ': earth is rounded');
+        return waitAlittle();
+      })
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('Definitely.');
+        testbot.say(testbot.channels[0], realbot.nick +
+                    ': who created aiml?');
+        return waitAlittle();
+      })
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql(
+                              'Dr. Richard S. Wallace created AIML.');
         done();
       })
       .catch(function(err) {
