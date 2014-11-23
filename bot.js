@@ -6,6 +6,7 @@ var irc = require('irc');
 var request = require('request');
 var _ = require('underscore');
 var AIMLInterpreter = require('aimlinterpreter');
+var Datastore = require('nedb');
 
 
 /**
@@ -148,7 +149,7 @@ Bot.prototype.loadAIML = function(option) {
 
   if (option === 'all') {
     aimlFiles = fs.readdirSync('./aiml/');
-    aimlFiles = _.map(aimlFiles, function(file){ return './aiml/' + file});
+    aimlFiles = _.map(aimlFiles, function(file){ return './aiml/' + file;});
     aimlInterpreter.loadAIMLFilesIntoArray(aimlFiles);
   }
   else {
@@ -156,15 +157,87 @@ Bot.prototype.loadAIML = function(option) {
   }
 
   that.addCustomMessageListener('message', function(from, to, text) {
-    var self = this;
-    if (text.indexOf(self.nick) > -1) {
-      text = text.split(':');
+    var self = this,
+        tempText = text.split(' ');
+    // checking just the first word to avoid mid sentence mentions
+    if (_.first(tempText).indexOf(self.nick.toLowerCase()) > -1) {
+      text = text.split(':');  // get rid of mentioned name
       text.shift();
-      text = text.join(':');
+      text = text.join(':').trim();
       aimlInterpreter.findAnswerInLoadedAIMLFiles(
           text, function(answer, wildCardArray) {
             self.say(to, from + ': ' + answer);
           });
+    }
+  });
+};
+
+/**
+ * Remember definition
+ */
+Bot.prototype.remember = function(option) {
+  var that = this,
+      file;
+  if (typeof(option) == 'string') {
+    file = option;
+  }
+  else {
+    file = './remember.db';
+  }
+
+  var db = new Datastore({ filename: file, autoload: true});
+
+  that.addCustomMessageListener('message', function(from, to, text) {
+    text = text.toLowerCase();
+    var self = this;
+        tempText = text.split(' ');
+    if (_.first(tempText).indexOf(self.nick.toLowerCase()) > -1) {
+      // Look for the pattern "remember x is y"
+      if (tempText[1].indexOf('!remember') > -1) {
+        text = text.split('!remember');
+        text = text[1].trim();
+        tempText = text.split('is');  // split "x is y"
+        var key = tempText[0].trim();  // key = x
+        tempText.shift();
+        var value = tempText.join('is').trim();  // value = y
+        var doc = {string: key, answer: value};
+        try {
+          db.insert(doc, function(err) {
+            if (err) {
+              console.log(err);
+            }
+            else {
+              self.say(to, from + ': ok!');
+            }
+          });
+        }
+        catch(e) {
+          console.log(e);
+        }
+      }
+      else {
+        text = text.split(' ');
+        text.shift();
+        text = text.join(' ').trim();
+        try {
+          db.findOne({string: text}, function(err, doc) {
+            if (err) {
+              console.log(err);
+            }
+            else {
+              if (doc !== null) {
+                self.say(to, doc.answer);
+              }
+              else {
+                self.say(to, 'huh?');
+              }
+            }
+          });
+        }
+        catch(e) {
+          console.log(e);
+        }
+      }
     }
   });
 };
