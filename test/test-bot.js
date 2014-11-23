@@ -163,4 +163,85 @@ describe('test bot', function() {
       });
     });
   });
+
+  after(function() {
+    realbot.kill();
+    testbot.kill();
+  });
+});
+
+
+describe('test remember', function() {
+  var realbot, testbot;
+
+  before(function(done) {
+    this.timeout(45000);
+    realbot = new Bot(config1);
+    testbot = new Bot(config2);
+
+    return Q.try(function() {
+      return realbot.connect();
+    })
+    .then(function(result) {
+      return testbot.connect();
+    })
+    .then(function(result) {
+      realbot.remember();
+      testbot.addMessageListener();
+
+      done();
+    })
+    .catch(function(err) {
+      done(err);
+    });
+  });
+
+  describe('test !remember', function() {
+    it('should reply ok when saved', function(done) {
+      this.timeout(40000);
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': !remember foo is bar');
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('ok!');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+
+    it('should answer correctly', function(done) {
+      this.timeout(40000);
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': foo');
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('bar');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+
+    it('should reply huh?', function(done) {
+      this.timeout(40000);
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': YOLO');
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('huh?');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+  });
+
+  after(function() {
+    realbot.kill();
+    testbot.kill();
+  });
 });
