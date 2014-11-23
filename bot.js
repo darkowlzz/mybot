@@ -9,6 +9,7 @@ var request = require('request');
 var _ = require('underscore');
 var AIMLInterpreter = require('aimlinterpreter');
 var Datastore = require('nedb');
+var fortune = require('fortune-teller');
 
 
 /**
@@ -239,6 +240,23 @@ Bot.prototype.remember = function(option) {
         catch(e) {
           console.log(e);
         }
+      }
+    }
+  });
+};
+
+/**
+ * Fortune cookies
+ */
+Bot.prototype.fortune = function() {
+  var that = this;
+  that.addCustomMessageListener('message', function(from, to, text) {
+    text = text.toLowerCase();
+    var self = this;
+    var tempText = text.split(' ');
+    if (_.first(tempText).indexOf(self.nick.toLowerCase()) > -1) {
+      if (tempText[1].indexOf('!cookie') > -1) {
+        self.say(to, fortune.fortune());
       }
     }
   });

@@ -247,3 +247,51 @@ describe('test remember', function() {
     testbot.kill();
   });
 });
+
+
+describe('test fortune cookie', function() {
+  var realbot, testbot;
+
+  before(function(done) {
+    this.timeout(45000);
+    realbot = new Bot(config1);
+    testbot = new Bot(config2);
+
+    return Q.try(function() {
+      return realbot.connect();
+    })
+    .then(function(result) {
+      return testbot.connect();
+    })
+    .then(function(result) {
+      realbot.fortune();
+      testbot.addMessageListener();
+
+      done();
+    })
+    .catch(function(err) {
+      done(err);
+    });
+  });
+
+  describe('test !cookie', function() {
+    it('should paste a fortune cookie', function(done) {
+      this.timeout(40000);
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': !cookie');
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.not.be.empty;
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+  });
+
+  after(function() {
+    realbot.kill();
+    testbot.kill();
+  });
+});
