@@ -1,3 +1,5 @@
+'use strict';
+
 var Q = require('q');
 var Bot = require('../bot');
 var should = require('should');
