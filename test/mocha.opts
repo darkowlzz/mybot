@@ -1,4 +1,4 @@
 --require should
 --ui bdd
 --recursive
---reporter nyan
+--reporter spec
