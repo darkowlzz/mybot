@@ -44,10 +44,8 @@ describe('test bot', function() {
       return testbot.connect();
     })
     .then(function(result) {
-      realbot.addMessageListener();
       realbot.addPartListener();
       realbot.addJoinListener();
-      testbot.addMessageListener();
       testbot.addPartListener();
       testbot.addJoinListener();
 
@@ -64,8 +62,8 @@ describe('test bot', function() {
   describe('test mention', function() {
     it('should reply when greeted', function(done) {
       this.timeout(40000);
-      testbot.say(testbot.channels[0], 'hi ' + realbot.nick);
-      testbot.say(testbot.channels[1], 'hi ' + realbot.nick);
+      testbot.say(testbot.channels[0], realbot.nick + ' hi');
+      testbot.say(testbot.channels[1], realbot.nick + ' hi');
       waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(testbot.nick);
@@ -189,8 +187,6 @@ describe('test remember', function() {
     })
     .then(function(result) {
       realbot.remember();
-      testbot.addMessageListener();
-
       done();
     })
     .catch(function(err) {
@@ -216,7 +212,7 @@ describe('test remember', function() {
     it('should answer correctly', function(done) {
       this.timeout(40000);
       testbot.say(testbot.channels[0],
-                  realbot.nick + ': foo');
+                  realbot.nick + ': foo?');
       waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql('bar');
@@ -230,7 +226,7 @@ describe('test remember', function() {
     it('should reply huh?', function(done) {
       this.timeout(40000);
       testbot.say(testbot.channels[0],
-                  realbot.nick + ': YOLO');
+                  realbot.nick + ': YOLO?');
       waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql('huh?');
@@ -265,8 +261,6 @@ describe('test fortune cookie', function() {
     })
     .then(function(result) {
       realbot.fortune();
-      testbot.addMessageListener();
-
       done();
     })
     .catch(function(err) {

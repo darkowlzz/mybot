@@ -21,6 +21,8 @@ function Bot(config) {
   that.nick = config.nick || 'zoobot';
   that.network = config.server || '127.0.0.1';
   that.channels = config.channels;
+  that.plugins = config.plugins || null;
+  that.help = {};
   that.buffer = {};
   that.channels.forEach(function(channel, index) {
     that.buffer[channel] = '';
@@ -29,7 +31,39 @@ function Bot(config) {
   that.client = new irc.Client(that.network, that.nick, {
     autoConnect: false
   });
+  that.addMessageListener();
+  that.addHelpListener();
   that.addErrorListener();
+
+  var plugins = {
+    'joinListener': function() {
+      return that.addJoinListener();
+    },
+
+    'partListener': function() {
+      return that.addPartListener();
+    },
+
+    'loadAIML': function() {
+      return that.loadAIML();
+    },
+
+    'remember': function() {
+      return that.remember();
+    },
+
+    'cookies': function() {
+      return that.fortune();
+    }
+  };
+
+  try {
+    that.plugins.forEach(function(plugin, index) {
+      console.log('loading ' + plugin);
+      that.help[plugin] = plugins[plugin]();
+    });
+  }
+  catch(e) {}
 }
 
 // Connect to the server and channels, returns a Promise
@@ -45,22 +79,6 @@ Bot.prototype.connect = function() {
         });
       });
     });
-  });
-};
-
-// Add message listener
-Bot.prototype.addMessageListener = function() {
-  var that = this;
-  that.client.addListener('message', function (from, to, text) {
-    if (from !== that.nick) {
-      that.buffer[to] = text;
-    }
-
-    if (text.indexOf(that.nick) > -1) {
-      if (text.indexOf('hi') > -1) {
-        that.say(to, 'hello there ' + from);
-      }
-    }
   });
 };
 
@@ -88,22 +106,7 @@ Bot.prototype.addPartListener = function() {
 Bot.prototype.addErrorListener = function() {
   var that = this;
   that.client.addListener('error', function(message) {
-    console.log('error: ', message);
-  });
-};
-
-/**
- * Add custom listener
- *
- * @param {String} event
- *    event to listen
- * @param {function} callback
- *    action to be performed
- */
-Bot.prototype.addCustomMessageListener = function(event, callback) {
-  var that = this;
-  that.client.addListener(event, function (from, to, text) {
-    callback.call(that, from, to, text);
+    console.log('error: ' + message);
   });
 };
 
@@ -130,6 +133,81 @@ Bot.prototype.kill = function() {
   var that = this;
   that.client.disconnect('killed');
 };
+
+/**
+ * Add custom listener
+ *
+ * @param {String} event
+ *    event to listen
+ * @param {function} callback
+ *    action to be performed
+ */
+Bot.prototype.addCustomMessageListener = function(event, callback) {
+  var that = this;
+  that.client.addListener(event, function (from, to, text) {
+    callback.call(that, from, to, text);
+  });
+};
+
+
+// Help listener
+Bot.prototype.addHelpListener = function() {
+  var that = this;
+  that.addCustomMessageListener('message', function (from, to, text) {
+    var self = this;
+    var tempText = text.split(' ');
+    if (_.first(tempText).indexOf(self.nick) > -1) {
+      text = text.split(' ');
+      text.shift();
+      if (text[0] === '!help') {
+        try {
+          self.say(to, from + ': ' + self.help[text[1]]);
+        }
+        catch(e) {
+          self.say(to, from + ': plugin not found');
+        }
+      }
+    }
+  });
+};
+
+
+// Add message listener
+Bot.prototype.addMessageListener = function() {
+  var help = 'addMessageListener:\n' +
+             'Enables listening to all the messages in all the channels' +
+             ' (excluding own messages).\n' +
+             'Commands:\n' +
+             'hi - replies with greetings message\n' +
+             'help - replies with help instructions';
+
+  var that = this;
+  that.addCustomMessageListener('message', function (from, to, text) {
+    var self = this;
+    if (from !== self.nick) {
+      self.buffer[to] = text;
+    }
+
+    text = text.split(' ');
+    if (_.first(text).indexOf(self.nick) > -1) {
+      if (text[1] == 'hi') {
+        self.say(to, 'hello there ' + from);
+      }
+      else if (text[1] == 'help') {
+        var helpText = 'Need help? Query help on any of the ' +
+                       'loaded plugins as\n' +
+                       '<mynick> !help <pluginName>\n';
+        var listPlugins = 'Following are the available plugins:\n';
+        self.plugins.forEach(function(plugin) {
+          listPlugins += plugin + ' ';
+        })
+        self.say(to, from + ': ' + helpText + listPlugins);
+      }
+    }
+  });
+  return help;
+};
+
 
 /**
  * LoadAIML
@@ -175,10 +253,18 @@ Bot.prototype.loadAIML = function(option) {
   });
 };
 
+
 /**
  * Remember definition
  */
 Bot.prototype.remember = function(option) {
+  var help = 'remember: \n' +
+             'This plugin enables the bot to remember definitions.\n' +
+             'Remember Syntax:\n'+
+             '<botname> !remember <foo> is <bar>\n' +
+             'Recall Syntax:\n' +
+             '<botname> <foo>?';
+
   var that = this,
       file;
   if (typeof(option) == 'string') {
@@ -199,7 +285,7 @@ Bot.prototype.remember = function(option) {
       if (tempText[1].indexOf('!remember') > -1) {
         text = text.split('!remember');
         text = text[1].trim();
-        tempText = text.split('is');  // split "x is y"
+        tempText = text.split(' is ');  // split "x is y"
         var key = tempText[0].trim();  // key = x
         tempText.shift();
         var value = tempText.join('is').trim();  // value = y
@@ -218,10 +304,10 @@ Bot.prototype.remember = function(option) {
           console.log(e);
         }
       }
-      else {
+      else if (text.slice(-1) == '?'){
         text = text.split(' ');
         text.shift();
-        text = text.join(' ').trim();
+        text = text.join(' ').trim().slice(0, -1);
         try {
           db.findOne({string: text}, function(err, doc) {
             if (err) {
@@ -243,12 +329,19 @@ Bot.prototype.remember = function(option) {
       }
     }
   });
+  return help;
 };
+
 
 /**
  * Fortune cookies
  */
 Bot.prototype.fortune = function() {
+  var help = 'fortune:\n' +
+             'This plugin helps the bot to retrieve fortunes.\n' +
+             'Syntax: \n' +
+             '<botname> !fortune'
+
   var that = this;
   that.addCustomMessageListener('message', function(from, to, text) {
     text = text.toLowerCase();
@@ -260,4 +353,5 @@ Bot.prototype.fortune = function() {
       }
     }
   });
+  return help;
 };
