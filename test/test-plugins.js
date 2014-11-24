@@ -76,7 +76,7 @@ describe('test help', function() {
       testbot.say(testbot.channels[0], realbot.nick + ' !help cookies');
       waitAlittle()
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('<botname> !fortune');
+        testbot.buffer[testbot.channels[0]].should.containEql('<botname> !cookie');
         done();
       })
       .catch(function(err) {
