@@ -340,7 +340,7 @@ Bot.prototype.fortune = function() {
   var help = 'fortune:\n' +
              'This plugin helps the bot to retrieve fortunes.\n' +
              'Syntax: \n' +
-             '<botname> !fortune'
+             '<botname> !cookie'
 
   var that = this;
   that.addCustomMessageListener('message', function(from, to, text) {
