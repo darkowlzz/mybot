@@ -288,7 +288,7 @@ Bot.prototype.remember = function(option) {
         tempText = text.split(' is ');  // split "x is y"
         var key = tempText[0].trim();  // key = x
         tempText.shift();
-        var value = tempText.join('is').trim();  // value = y
+        var value = tempText.join(' is ').trim();  // value = y
         var doc = {string: key, answer: value};
         try {
           db.insert(doc, function(err) {
