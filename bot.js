@@ -116,6 +116,12 @@ Bot.prototype.say = function(channel, msg) {
   that.client.say(channel, msg);
 };
 
+// Send an action message to a channel
+Bot.prototype.action = function(channel, msg) {
+  var that = this;
+  that.client.action(channel, msg);
+};
+
 // Part from a channel
 Bot.prototype.part = function(channel, msg) {
   var that = this;
