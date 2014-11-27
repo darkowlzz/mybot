@@ -33,7 +33,7 @@ describe('test bot', function() {
   var realbot, testbot;
 
   before(function(done) {
-    this.timeout(45000);
+    this.timeout(85000);
     realbot = new Bot(config1);
     testbot = new Bot(config2);
 
@@ -112,7 +112,7 @@ describe('test bot', function() {
     it('should reply as per the defined action', function(done) {
       this.timeout(40000);
 
-      realbot.addCustomMessageListener('message', function(from, to, text) {
+      realbot.addMessageListener(function(from, to, text) {
         if (text.indexOf(this.nick) > -1) {
           if (text.indexOf('what is irc') > -1) {
             this.say(to, 'Internet Relay Chat');
@@ -128,154 +128,6 @@ describe('test bot', function() {
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(
                                            'Internet Relay Chat');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-  });
-
-  describe('test loadAIML', function() {
-    it('should reply as per AIML', function(done) {
-      this.timeout(40000);
-
-      realbot.loadAIML();
-      waitAlittle()
-      .then(function(result) {
-        testbot.say(testbot.channels[0], realbot.nick +
-                    ': earth is rounded');
-        return waitAlittle();
-      })
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('Definitely.');
-        testbot.say(testbot.channels[0], realbot.nick +
-                    ': who created aiml?');
-        return waitAlittle();
-      })
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql(
-                              'Dr. Richard S. Wallace created AIML.');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-  });
-
-  after(function() {
-    realbot.kill();
-    testbot.kill();
-  });
-});
-
-
-describe('test remember', function() {
-  var realbot, testbot;
-
-  before(function(done) {
-    this.timeout(45000);
-    realbot = new Bot(config1);
-    testbot = new Bot(config2);
-
-    return Q.try(function() {
-      return realbot.connect();
-    })
-    .then(function(result) {
-      return testbot.connect();
-    })
-    .then(function(result) {
-      realbot.remember();
-      done();
-    })
-    .catch(function(err) {
-      done(err);
-    });
-  });
-
-  describe('test !remember', function() {
-    it('should reply ok when saved', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': !remember foo is bar');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('ok!');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-
-    it('should answer correctly', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': foo?');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('bar');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-
-    it('should reply huh?', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': YOLO?');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('huh?');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-  });
-
-  after(function() {
-    realbot.kill();
-    testbot.kill();
-  });
-});
-
-
-describe('test fortune cookie', function() {
-  var realbot, testbot;
-
-  before(function(done) {
-    this.timeout(45000);
-    realbot = new Bot(config1);
-    testbot = new Bot(config2);
-
-    return Q.try(function() {
-      return realbot.connect();
-    })
-    .then(function(result) {
-      return testbot.connect();
-    })
-    .then(function(result) {
-      realbot.fortune();
-      done();
-    })
-    .catch(function(err) {
-      done(err);
-    });
-  });
-
-  describe('test !cookie', function() {
-    it('should paste a fortune cookie', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': !cookie');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.not.be.empty;
         done();
       })
       .catch(function(err) {

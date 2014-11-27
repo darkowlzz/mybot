@@ -11,7 +11,7 @@ var config1 = {
   nick: nick1,
   channels: ['#hello'],
   server: '127.0.0.1',
-  plugins: ['remember', 'fortune']
+  plugins: ['aiml']
 };
 
 var config2 = {
@@ -29,7 +29,7 @@ function waitAlittle() {
   });
 }
 
-describe('test plugins', function() {
+describe('test aiml plugin', function() {
   var realbot, testbot;
 
   before(function(done) {
@@ -51,31 +51,22 @@ describe('test plugins', function() {
     });
   });
 
-  describe('test plugins', function() {
-    it('plugins should be present', function() {
-      realbot.plugins.should.containEql('fortune');
-      realbot.plugins.should.containEql('remember');
-    });
-
-    it('should list loaded plugins', function(done) {
+  describe('test aiml', function() {
+    it('should reply as per AIML', function(done) {
       this.timeout(40000);
-      testbot.say(testbot.channels[0], realbot.nick + ' help');
+
+      testbot.say(testbot.channels[0], realbot.nick +
+                  ': earth is rounded');
       waitAlittle()
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('remember fortune');
-        done();
+        testbot.buffer[testbot.channels[0]].should.containEql('Definitely.');
+        testbot.say(testbot.channels[0], realbot.nick +
+                    ': who created aiml?');
+        return waitAlittle();
       })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-
-    it('!help <pluginName> should reply description', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0], realbot.nick + ' !help fortune');
-      waitAlittle()
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('<botname> !cookie');
+        testbot.buffer[testbot.channels[0]].should.containEql(
+                              'Dr. Richard S. Wallace created AIML.');
         done();
       })
       .catch(function(err) {

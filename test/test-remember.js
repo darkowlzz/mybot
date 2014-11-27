@@ -11,7 +11,7 @@ var config1 = {
   nick: nick1,
   channels: ['#hello'],
   server: '127.0.0.1',
-  plugins: ['remember', 'fortune']
+  plugins: ['remember']
 };
 
 var config2 = {
@@ -29,7 +29,7 @@ function waitAlittle() {
   });
 }
 
-describe('test plugins', function() {
+describe('test remember plugin', function() {
   var realbot, testbot;
 
   before(function(done) {
@@ -51,18 +51,14 @@ describe('test plugins', function() {
     });
   });
 
-  describe('test plugins', function() {
-    it('plugins should be present', function() {
-      realbot.plugins.should.containEql('fortune');
-      realbot.plugins.should.containEql('remember');
-    });
-
-    it('should list loaded plugins', function(done) {
+  describe('test remember', function() {
+    it('should reply ok when saved', function(done) {
       this.timeout(40000);
-      testbot.say(testbot.channels[0], realbot.nick + ' help');
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': !remember foo is bar');
       waitAlittle()
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('remember fortune');
+        testbot.buffer[testbot.channels[0]].should.containEql('ok!');
         done();
       })
       .catch(function(err) {
@@ -70,12 +66,27 @@ describe('test plugins', function() {
       });
     });
 
-    it('!help <pluginName> should reply description', function(done) {
+    it('should answer correctly', function(done) {
       this.timeout(40000);
-      testbot.say(testbot.channels[0], realbot.nick + ' !help fortune');
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': foo?');
       waitAlittle()
       .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('<botname> !cookie');
+        testbot.buffer[testbot.channels[0]].should.containEql('bar');
+        done();
+      })
+      .catch(function(err) {
+        done(err);
+      });
+    });
+
+    it('should reply huh?', function(done) {
+      this.timeout(40000);
+      testbot.say(testbot.channels[0],
+                  realbot.nick + ': YOLO?');
+      waitAlittle()
+      .then(function(result) {
+        testbot.buffer[testbot.channels[0]].should.containEql('huh?');
         done();
       })
       .catch(function(err) {
