@@ -33,7 +33,7 @@ describe('test bot', function() {
   var realbot, testbot;
 
   before(function(done) {
-    this.timeout(45000);
+    this.timeout(85000);
     realbot = new Bot(config1);
     testbot = new Bot(config2);
 
