@@ -112,7 +112,7 @@ describe('test bot', function() {
     it('should reply as per the defined action', function(done) {
       this.timeout(40000);
 
-      realbot.addCustomMessageListener('message', function(from, to, text) {
+      realbot.addMessageListener(function(from, to, text) {
         if (text.indexOf(this.nick) > -1) {
           if (text.indexOf('what is irc') > -1) {
             this.say(to, 'Internet Relay Chat');
@@ -136,6 +136,7 @@ describe('test bot', function() {
     });
   });
 
+  /*
   describe('test loadAIML', function() {
     it('should reply as per AIML', function(done) {
       this.timeout(40000);
@@ -163,6 +164,7 @@ describe('test bot', function() {
       });
     });
   });
+  */
 
   after(function() {
     realbot.kill();
@@ -171,80 +173,7 @@ describe('test bot', function() {
 });
 
 
-describe('test remember', function() {
-  var realbot, testbot;
-
-  before(function(done) {
-    this.timeout(45000);
-    realbot = new Bot(config1);
-    testbot = new Bot(config2);
-
-    return Q.try(function() {
-      return realbot.connect();
-    })
-    .then(function(result) {
-      return testbot.connect();
-    })
-    .then(function(result) {
-      realbot.remember();
-      done();
-    })
-    .catch(function(err) {
-      done(err);
-    });
-  });
-
-  describe('test !remember', function() {
-    it('should reply ok when saved', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': !remember foo is bar');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('ok!');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-
-    it('should answer correctly', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': foo?');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('bar');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-
-    it('should reply huh?', function(done) {
-      this.timeout(40000);
-      testbot.say(testbot.channels[0],
-                  realbot.nick + ': YOLO?');
-      waitAlittle()
-      .then(function(result) {
-        testbot.buffer[testbot.channels[0]].should.containEql('huh?');
-        done();
-      })
-      .catch(function(err) {
-        done(err);
-      });
-    });
-  });
-
-  after(function() {
-    realbot.kill();
-    testbot.kill();
-  });
-});
-
-
+/*
 describe('test fortune cookie', function() {
   var realbot, testbot;
 
@@ -289,3 +218,4 @@ describe('test fortune cookie', function() {
     testbot.kill();
   });
 });
+*/
