@@ -6,6 +6,8 @@ var _ = require('underscore');
  * Performs general greetings and help related tasks.
  */
 
+exports.events = ['message'];
+
 exports.help = 'Intro:\n' +
                'Enables listening to all the messages in all the channels' +
                ' (excluding own messages).\n' +
@@ -13,7 +15,7 @@ exports.help = 'Intro:\n' +
                'hi - replies with greetings message\n' +
                'help - replies with help instructions';
 
-exports.main = function (from, to, text) {
+exports.message = function (from, to, text) {
   var self = this;
   if (from !== self.nick) {
     self.buffer[to] = text;

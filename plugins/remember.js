@@ -5,6 +5,8 @@ var Datastore = require('nedb');
  * Remember definition
  */
 
+exports.events = ['message'];
+
 var file;
 if (typeof(option) == 'string') {
   file = option;
@@ -23,7 +25,7 @@ exports.help = 'remember: \n' +
                'Recall Syntax:\n' +
                '<botname> <foo>?';
 
-exports.main = function(from, to, text) {
+exports.message = function(from, to, text) {
   // WARNING!! Shitty code below. Need refactoring.
   text = text.toLowerCase();
   var self = this;

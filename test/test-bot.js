@@ -44,11 +44,6 @@ describe('test bot', function() {
       return testbot.connect();
     })
     .then(function(result) {
-      realbot.addPartListener();
-      realbot.addJoinListener();
-      testbot.addPartListener();
-      testbot.addJoinListener();
-
       realbot.say(realbot.channels[0], 'hi, my name is ' + realbot.nick);
       testbot.say(testbot.channels[0], 'hello, my name is ' + testbot.nick);
 

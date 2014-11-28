@@ -24,7 +24,7 @@ function Bot(config) {
   that.extraPlugins = config.plugins || [];
   that.help = {};
   that.buffer = {};
-  that.plugins = ['intro'].concat(that.extraPlugins);
+  that.plugins = ['intro', 'join', 'part', 'error'].concat(that.extraPlugins);
   that.channels.forEach(function(channel, index) {
     that.buffer[channel] = '';
   });
@@ -34,8 +34,6 @@ function Bot(config) {
   });
 
   that.pluginLoader = new PluginLoader(that);
-
-  that.addErrorListener();
 
   that.plugins.forEach(function(plugin, index) {
     that.pluginLoader.load(plugin);
@@ -58,33 +56,6 @@ Bot.prototype.connect = function() {
   });
 };
 
-// Add join listener
-Bot.prototype.addJoinListener = function() {
-  var that = this;
-  that.client.addListener('join', function (channel, nick) {
-    if (nick !== that.nick) {
-      that.buffer[channel] = nick + ' has joined';
-    }
-  });
-};
-
-// Add part listener
-Bot.prototype.addPartListener = function() {
-  var that = this;
-  that.client.addListener('part', function (channel, nick, reason) {
-    if (nick !== that.nick) {
-      that.buffer[channel] = nick + ' has left(' + reason + ')';
-    }
-  });
-};
-
-// Add error listener
-Bot.prototype.addErrorListener = function() {
-  var that = this;
-  that.client.addListener('error', function(message) {
-    console.log('error: ' + message);
-  });
-};
 
 // Send message to a channel
 Bot.prototype.say = function(channel, msg) {
@@ -161,26 +132,22 @@ Bot.prototype.addTopicListener = function (callback) {
 /**
  * Adds 'join' event listener.
  */
-/*
 Bot.prototype.addJoinListener = function (callback) {
   var that = this;
   that.client.addListener('join', function(channel, nick) {
     callback.call(that, channel, nick);
   });
 };
-*/
 
 /**
  * Adds 'part' event listener.
  */
-/*
 Bot.prototype.addPartListener = function (callback) {
   var that = this;
   that.client.addListener('part', function(channel, nick, reason) {
     callback.call(that, channel, nick, reason);
   });
 };
-*/
 
 /**
  * Adds 'quit' event listener.
@@ -335,9 +302,19 @@ Bot.prototype.addChannellistItemListener = function (callback) {
 /**
  * Adds 'channellist' event listener.
  */
-Bot.prototype.addChannellistItemListener = function (callback) {
+Bot.prototype.addChannellistListener = function (callback) {
   var that = this;
   that.client.addListener('channellist', function(channel_list) {
     callback.call(that, channel_list);
+  });
+};
+
+/**
+ * Adds 'error' event listener.
+ */
+Bot.prototype.addErrorListener = function (callback) {
+  var that = this;
+  that.client.addListener('error', function(message) {
+    callback.call(that, message);
   });
 };
