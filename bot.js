@@ -11,6 +11,7 @@ var Datastore = require('nedb');
 
 var PluginLoader = require('./pluginLoader');
 
+var DEFAULT_PLUGINS = ['intro', 'join', 'part', 'error'];
 
 /**
  * Bot class
@@ -24,7 +25,7 @@ function Bot(config) {
   that.extraPlugins = config.plugins || [];
   that.help = {};
   that.buffer = {};
-  that.plugins = ['intro', 'join', 'part', 'error'].concat(that.extraPlugins);
+  that.plugins = DEFAULT_PLUGINS.concat(that.extraPlugins);
   that.channels.forEach(function(channel, index) {
     that.buffer[channel] = '';
   });
@@ -41,7 +42,7 @@ function Bot(config) {
 }
 
 // Connect to the server and channels, returns a Promise
-Bot.prototype.connect = function() {
+Bot.prototype.connectAll = function() {
   var that = this;
   return Q.Promise(function(resolve, reject) {
     that.client.connect(5, function(input) {
@@ -56,17 +57,12 @@ Bot.prototype.connect = function() {
   });
 };
 
+/*--------------------------------------------------------------------------*/
 
-// Send message to a channel
-Bot.prototype.say = function(channel, msg) {
+// Join a channel
+Bot.prototype.join = function(channel) {
   var that = this;
-  that.client.say(channel, msg);
-};
-
-// Send an action message to a channel
-Bot.prototype.action = function(channel, msg) {
-  var that = this;
-  that.client.action(channel, msg);
+  that.client.join(channel);
 };
 
 // Part from a channel
@@ -75,10 +71,52 @@ Bot.prototype.part = function(channel, msg) {
   that.client.part(channel, msg);
 };
 
-// Join a channel
-Bot.prototype.join = function(channel) {
+// Send message to a channel
+Bot.prototype.say = function(channel, msg) {
   var that = this;
-  that.client.join(channel);
+  that.client.say(channel, msg);
+};
+
+// Send CTCP message to a channel
+Bot.prototype.ctcp = function(channel, type, msg) {
+  var that = this;
+  that.client.ctcp(target, type, msg);
+};
+
+// Send an action message to a channel
+Bot.prototype.action = function(channel, msg) {
+  var that = this;
+  that.client.action(channel, msg);
+};
+
+// Send a notice to a channel
+Bot.prototype.notice = function(channel, msg) {
+  var that = this;
+  that.client.notice(channel, msg);
+};
+
+// Send a whois to a channel
+Bot.prototype.whois = function(nick, callback) {
+  var that = this;
+  that.client.whois(nick, function(nick) {
+    callback.call(that, nick);
+  });
+};
+
+// Connect to the server
+Bot.prototype.connect = function(retryCount, callback) {
+  var that = this;
+  that.client.connect(retryCount, function(input) {
+    callback.call(that, input);
+  });
+};
+
+// Disconnect from the server
+Bot.prototype.disconnect = function(message, callback) {
+  var that = this;
+  that.client.disconnect(message, function(input) {
+    callback.call(that, input);
+  });
 };
 
 // Kill the bot
@@ -87,7 +125,7 @@ Bot.prototype.kill = function() {
   that.client.disconnect('killed');
 };
 
-/*-------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 /**
  * Adds 'registered' event listener.

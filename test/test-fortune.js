@@ -38,10 +38,10 @@ describe('test fortune plugin', function() {
     testbot = new Bot(config2);
 
     return Q.try(function() {
-      return realbot.connect();
+      return realbot.connectAll();
     })
     .then(function(result) {
-      return testbot.connect();
+      return testbot.connectAll();
     })
     .then(function(result) {
       done();

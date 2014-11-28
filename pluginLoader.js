@@ -1,15 +1,28 @@
 module.exports = PluginLoader;
 
+/**
+ * PluginLoader class
+ *
+ * @param {object} The bot object.
+ */
 function PluginLoader(bot) {
   var that = this;
   that.bot = bot;
 }
 
+/**
+ *  Plugin load method.
+ *
+ *  @param {string} Name of the plugin.
+ */
 PluginLoader.prototype.load = function(pluginName) {
   var that = this;
   var plugin = require('./plugins/' + pluginName);
 
+  // Store plugin help string
   that.bot.help[pluginName] = plugin.help;
+
+  // Plug the plugin logic to the registered event listeners.
   plugin.events.forEach(function(event) {
     switch (event) {
       case 'registered': that.bot.addRegisteredListener(plugin.register);
