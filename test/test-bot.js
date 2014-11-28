@@ -38,10 +38,10 @@ describe('test bot', function() {
     testbot = new Bot(config2);
 
     return Q.try(function() {
-      return realbot.connect();
+      return realbot.connectAll();
     })
     .then(function(result) {
-      return testbot.connect();
+      return testbot.connectAll();
     })
     .then(function(result) {
       realbot.say(realbot.channels[0], 'hi, my name is ' + realbot.nick);
