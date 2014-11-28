@@ -5,12 +5,14 @@ var fortune = require('fortune-teller');
  * Fortune cookies
  */
 
+exports.events = ['message'];
+
 exports.help = 'fortune:\n' +
                'This plugin helps the bot to retrieve fortunes.\n' +
                'Syntax: \n' +
                '<botname> !cookie';
 
-exports.main = function (from, to, text) {
+exports.message = function (from, to, text) {
   text = text.toLowerCase();
   var self = this;
   var tempText = text.split(' ');

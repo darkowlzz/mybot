@@ -10,6 +10,8 @@ var AIMLInterpreter = require('aimlinterpreter');
  *    e.g.: ['file1.aiml', 'file2.aiml']
  */
 
+exports.events = ['message'];
+
 var aimlFiles;
 /*
 if (option === undefined) {
@@ -34,7 +36,7 @@ else {
 
 exports.help = 'AIML loader help';
 
-exports.main = function(from, to, text) {
+exports.message = function(from, to, text) {
   var self = this;
   var tempText = text.split(' ');
   // checking just the first word to avoid mid sentence mentions
