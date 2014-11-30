@@ -33,9 +33,9 @@ function Bot(config) {
     autoConnect: false
   });
 
-  that.pluginLoader = new PluginLoader(that);
+  that.pluginLoader = new PluginLoader(that, module.parent);
 
-  that.plugins.forEach(function(plugin, index) {
+  that.plugins.forEach(function(plugin) {
     that.pluginLoader.load(plugin);
   });
 }
@@ -79,7 +79,7 @@ Bot.prototype.say = function(channel, msg) {
 // Send CTCP message to a channel
 Bot.prototype.ctcp = function(channel, type, msg) {
   var that = this;
-  that.client.ctcp(target, type, msg);
+  that.client.ctcp(channel, type, msg);
 };
 
 // Send an action message to a channel

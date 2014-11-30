@@ -5,10 +5,10 @@ var _ = require('underscore');
  *
  * Performs general greetings and help related tasks.
  */
+
+exports.name = 'intro';
 exports.type = 'event';
-
 exports.events = ['message'];
-
 exports.help = 'Intro:\n' +
                'Enables listening to all the messages in all the channels' +
                ' (excluding own messages).\n' +

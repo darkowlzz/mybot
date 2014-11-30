@@ -1,7 +1,6 @@
+exports.name = 'join';
 exports.type = 'event';
-
 exports.events = ['join'];
-
 exports.help = 'Join:\n' +
                'Listens to join events and logs into the respective ' +
                'channel buffer';

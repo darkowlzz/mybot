@@ -5,10 +5,9 @@ var fortune = require('fortune-teller');
  * Fortune cookies
  */
 
+exports.name = 'fortune';
 exports.type = 'event';
-
 exports.events = ['message'];
-
 exports.help = 'fortune:\n' +
                'This plugin helps the bot to retrieve fortunes.\n' +
                'Syntax: \n' +

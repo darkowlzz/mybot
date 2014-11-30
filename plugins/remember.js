@@ -4,8 +4,9 @@ var Datastore = require('nedb');
 /**
  * Remember definition
  */
-exports.type = 'event';
 
+exports.name = 'remember';
+exports.type = 'event';
 exports.events = ['message'];
 
 var file;

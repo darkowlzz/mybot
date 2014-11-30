@@ -5,9 +5,9 @@ var Q = require('q');
 
 // Constants
 var PLUGIN_PATH = './plugins/';
-var PLUGIN_EXTENSION = '.js';
 var NOT_FOUND_CODE = 'MODULE_NOT_FOUND';
-var HELP_MSG = 'Install the plugin via npm or place it in plugins/ dir';
+var HELP_MSG = 'Install the plugin via npm or provide the correct ' +
+               'module path/name.js';
 
 
 /**
@@ -15,9 +15,10 @@ var HELP_MSG = 'Install the plugin via npm or place it in plugins/ dir';
  *
  * @param {object} The bot object.
  */
-function PluginLoader(bot) {
+function PluginLoader(bot, moduleContext) {
   var that = this;
   that.bot = bot;
+  that.moduleContext = moduleContext;
 }
 
 /**
@@ -30,8 +31,7 @@ PluginLoader.prototype.load = function(pluginName) {
   that.getPlugin(pluginName)
   .then(function (plugin) {
     // Store plugin help string
-    that.bot.help[pluginName] = plugin.help || '';
-
+    that.bot.help[plugin.name] = plugin.help || '';
     if (plugin.type === 'main') {
       plugin.main(that.bot);
     }
@@ -49,27 +49,37 @@ PluginLoader.prototype.load = function(pluginName) {
  * @return A promise object which resolves to a plugin object.
  */
 PluginLoader.prototype.getPlugin = function (name) {
-  var plugin;
+  var that = this,
+      re = new RegExp('(\.js)$'),
+      plugin;
+
   return Q.Promise(function(resolve, reject) {
-    fs.exists(PLUGIN_PATH + name + PLUGIN_EXTENSION, function(exists) {
-      if (exists) {
-        plugin = require(PLUGIN_PATH + name);
+    try {
+      // test if it's a downloaded plugin
+      if (re.test(name)) {
+        plugin = that.moduleContext.require('./' + name);
         resolve(plugin);
       }
       else {
-        try {
-          plugin = require(name);
-          resolve(plugin);
-        }
-        catch(e) {
-          if (e.code === NOT_FOUND_CODE) {
-            console.log('Plugin ' + name + ' not found.');
-            console.log(HELP_MSG);
-          }
-          reject(new Error('Plugin not found'));
-        }
+        // import built-in plugin
+        plugin = require(PLUGIN_PATH + name);
+        resolve(plugin);
       }
-    });
+    }
+    catch (e) {
+      try {
+        // import from node_modules
+        plugin = require(name);
+        resolve(plugin);
+      }
+      catch (e) {
+        if (e.code === NOT_FOUND_CODE) {
+          console.log('Plugin ' + name + ' not found.');
+          console.log(HELP_MSG);
+        }
+        reject(new Error('Plugin not found'));
+      }
+    }
   });
 };
 

@@ -1,7 +1,6 @@
+exports.name = 'part';
 exports.type = 'event';
-
 exports.events = ['part'];
-
 exports.help = 'Part:\n' +
                'Listens to part events and logs into the respective ' +
                'channel buffer';
