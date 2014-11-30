@@ -3,15 +3,14 @@
 module.exports = Bot;
 
 var Q = require('q');
-var http = require('http');
 var irc = require('irc');
-var request = require('request');
 var _ = require('underscore');
 var Datastore = require('nedb');
 
 var PluginLoader = require('./pluginLoader');
 
 var DEFAULT_PLUGINS = ['intro', 'join', 'part', 'error'];
+
 
 /**
  * Bot class
@@ -39,10 +38,6 @@ function Bot(config) {
   that.plugins.forEach(function(plugin, index) {
     that.pluginLoader.load(plugin);
   });
-
-  if (!!config.controlPanel) {
-    that.initServer();
-  }
 }
 
 // Connect to the server and channels, returns a Promise
@@ -359,21 +354,4 @@ Bot.prototype.addErrorListener = function (callback) {
   that.client.addListener('error', function(message) {
     callback.call(that, message);
   });
-};
-
-/*--------------------------------------------------------------------------*/
-
-/**
- * Start bot control panel server.
- */
-Bot.prototype.initServer = function () {
-  var that = this;
-  that.server = http.createServer(function(request, response) {
-    response.writeHeader(200, {'Content-Type': 'text/plain'});
-    response.write('bot control panel');
-    response.end();
-  });
-  that.port = process.env.PORT || 5000;
-  that.server.listen(that.port);
-  console.log('Server running on ' + that.port);
 };

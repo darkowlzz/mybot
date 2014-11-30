@@ -1,3 +1,5 @@
+exports.type = 'event';
+
 exports.events = ['error'];
 
 exports.help = 'Error:\n' +

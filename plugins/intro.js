@@ -5,6 +5,7 @@ var _ = require('underscore');
  *
  * Performs general greetings and help related tasks.
  */
+exports.type = 'event';
 
 exports.events = ['message'];
 

@@ -5,6 +5,8 @@ var fortune = require('fortune-teller');
  * Fortune cookies
  */
 
+exports.type = 'event';
+
 exports.events = ['message'];
 
 exports.help = 'fortune:\n' +
