@@ -1,7 +1,6 @@
+exports.name = 'error';
 exports.type = 'event';
-
 exports.events = ['error'];
-
 exports.help = 'Error:\n' +
                'Listens to error events and log them to console.';
 

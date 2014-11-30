@@ -20,6 +20,13 @@ var config2 = {
   server: '127.0.0.1'
 };
 
+var config3 = {
+  nick: 'xxzzyy',
+  channels: ['#hello'],
+  server: '127.0.0.1',
+  plugins: ['fooplugin.js']
+};
+
 // A short blocking delay
 function waitAlittle() {
   return Q.Promise(function(resolve, reject) {
@@ -87,5 +94,19 @@ describe('test plugins', function() {
   after(function() {
     realbot.kill();
     testbot.kill();
+  });
+});
+
+describe('test downloaded plugin', function () {
+  var testbot;
+
+  before(function() {
+    testbot = new Bot(config3);
+  });
+
+  describe('load downloaded plugin', function() {
+    it ('should load downloaded plugin', function () {
+      testbot.help['fooplugin'].should.containEql('dummy plugin');
+    });
   });
 });

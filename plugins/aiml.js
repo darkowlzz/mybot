@@ -11,8 +11,8 @@ var AIMLInterpreter = require('aimlinterpreter');
  *    e.g.: ['file1.aiml', 'file2.aiml']
  */
 
+exports.name = 'aiml';
 exports.type = 'event';
-
 exports.events = ['message'];
 
 var aimlFiles;
