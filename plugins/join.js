@@ -1,3 +1,5 @@
+exports.type = 'event';
+
 exports.events = ['join'];
 
 exports.help = 'Join:\n' +

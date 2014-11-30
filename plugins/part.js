@@ -1,3 +1,5 @@
+exports.type = 'event';
+
 exports.events = ['part'];
 
 exports.help = 'Part:\n' +

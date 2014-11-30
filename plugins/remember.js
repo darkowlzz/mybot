@@ -4,6 +4,7 @@ var Datastore = require('nedb');
 /**
  * Remember definition
  */
+exports.type = 'event';
 
 exports.events = ['message'];
 

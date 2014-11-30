@@ -1,5 +1,15 @@
 module.exports = PluginLoader;
 
+var fs = require('fs');
+var Q = require('q');
+
+// Constants
+var PLUGIN_PATH = './plugins/';
+var PLUGIN_EXTENSION = '.js';
+var NOT_FOUND_CODE = 'MODULE_NOT_FOUND';
+var HELP_MSG = 'Install the plugin via npm or place it in plugins/ dir';
+
+
 /**
  * PluginLoader class
  *
@@ -11,18 +21,65 @@ function PluginLoader(bot) {
 }
 
 /**
- *  Plugin load method.
+ * Plugin load method.
  *
- *  @param {string} Name of the plugin.
+ * @param {string} Name of the plugin.
  */
 PluginLoader.prototype.load = function(pluginName) {
   var that = this;
-  var plugin = require('./plugins/' + pluginName);
+  that.getPlugin(pluginName)
+  .then(function (plugin) {
+    // Store plugin help string
+    that.bot.help[pluginName] = plugin.help || '';
 
-  // Store plugin help string
-  that.bot.help[pluginName] = plugin.help;
+    if (plugin.type === 'main') {
+      plugin.main(that.bot);
+    }
+    else if (plugin.type === 'event') {
+      that.plugToEvent(plugin);
+    }
+  })
+  .catch();
+};
 
-  // Plug the plugin logic to the registered event listeners.
+/**
+ * Get the plugin from source. The source could be plugins/ dir or node_modules.
+ *
+ * @param {string} Name of the plugin.
+ * @return A promise object which resolves to a plugin object.
+ */
+PluginLoader.prototype.getPlugin = function (name) {
+  var plugin;
+  return Q.Promise(function(resolve, reject) {
+    fs.exists(PLUGIN_PATH + name + PLUGIN_EXTENSION, function(exists) {
+      if (exists) {
+        plugin = require(PLUGIN_PATH + name);
+        resolve(plugin);
+      }
+      else {
+        try {
+          plugin = require(name);
+          resolve(plugin);
+        }
+        catch(e) {
+          if (e.code === NOT_FOUND_CODE) {
+            console.log('Plugin ' + name + ' not found.');
+            console.log(HELP_MSG);
+          }
+          reject(new Error('Plugin not found'));
+        }
+      }
+    });
+  });
+};
+
+/**
+ * Plug the plugin to events.
+ *
+ * @param {Object} A plugin object.
+ */
+PluginLoader.prototype.plugToEvent = function (plugin) {
+  var that = this;
   plugin.events.forEach(function(event) {
     switch (event) {
       case 'registered': that.bot.addRegisteredListener(plugin.register);
@@ -76,4 +133,4 @@ PluginLoader.prototype.load = function(pluginName) {
                          break;
     }
   });
-}
+};

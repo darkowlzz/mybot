@@ -1,3 +1,4 @@
+var fs = require('fs');
 var _ = require('underscore');
 var AIMLInterpreter = require('aimlinterpreter');
 
@@ -9,6 +10,8 @@ var AIMLInterpreter = require('aimlinterpreter');
  *    The argument should be a list of filepath to be loaded.
  *    e.g.: ['file1.aiml', 'file2.aiml']
  */
+
+exports.type = 'event';
 
 exports.events = ['message'];
 
