@@ -19,15 +19,6 @@ var config2 = {
   server: '127.0.0.1'
 };
 
-// A short blocking delay
-function waitAlittle() {
-  return Q.Promise(function(resolve, reject) {
-    Q.delay(5000).then(function() {
-      resolve('done');
-    });
-  });
-}
-
 
 describe('test async connect', function () {
   var realbot, testbot;
@@ -48,7 +39,7 @@ describe('test async connect', function () {
   describe('test message', function () {
     it ('should listen to message', function (done) {
       this.timeout(40000);
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function (result) {
         testbot.buffer[testbot.channels[0]].should.containEql('async hi');
         done();

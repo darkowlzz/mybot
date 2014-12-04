@@ -20,14 +20,6 @@ var config2 = {
   server: '127.0.0.1'
 };
 
-// A short blocking delay
-function waitAlittle() {
-  return Q.Promise(function(resolve, reject) {
-    Q.delay(5000).then(function() {
-      resolve('done');
-    });
-  });
-}
 
 describe('test fortune plugin', function() {
   var realbot, testbot;
@@ -56,7 +48,7 @@ describe('test fortune plugin', function() {
       this.timeout(40000);
       testbot.say(testbot.channels[0],
                   realbot.nick + ': !cookie');
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.not.be.empty;
         done();

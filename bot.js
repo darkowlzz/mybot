@@ -108,6 +108,20 @@ Bot.prototype.assemblePlugins = function (plugins) {
   }
 };
 
+/**
+ * Wait for some time.
+ *
+ * @param {number}[optional] time - Milliseconds to wait.
+ */
+Bot.prototype.waitAlittle = function (time) {
+  time = time || 3000;
+  return Q.Promise(function (resolve, reject) {
+    Q.delay(time).then(function () {
+      resolve(true);
+    });
+  });
+};
+
 /*--------------------------------------------------------------------------*/
 
 // Join a channel
