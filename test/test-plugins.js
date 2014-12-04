@@ -27,14 +27,6 @@ var config3 = {
   plugins: ['fooplugin.js']
 };
 
-// A short blocking delay
-function waitAlittle() {
-  return Q.Promise(function(resolve, reject) {
-    Q.delay(5000).then(function() {
-      resolve('done');
-    });
-  });
-}
 
 describe('test plugins', function() {
   var realbot, testbot;
@@ -67,7 +59,7 @@ describe('test plugins', function() {
     it('should list loaded plugins', function(done) {
       this.timeout(40000);
       testbot.say(testbot.channels[0], realbot.nick + ' help');
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql('remember fortune');
         done();
@@ -80,7 +72,7 @@ describe('test plugins', function() {
     it('!help <pluginName> should reply description', function(done) {
       this.timeout(40000);
       testbot.say(testbot.channels[0], realbot.nick + ' !help fortune');
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql('<botname> !cookie');
         done();

@@ -19,15 +19,6 @@ var config2 = {
   server: '127.0.0.1'
 };
 
-// A short blocking delay
-function waitAlittle() {
-  return Q.Promise(function(resolve, reject) {
-    Q.delay(5000).then(function() {
-      resolve('done');
-    });
-  });
-}
-
 
 describe('test bot', function() {
   var realbot, testbot;
@@ -59,7 +50,7 @@ describe('test bot', function() {
       this.timeout(40000);
       testbot.say(testbot.channels[0], realbot.nick + ' hi');
       testbot.say(testbot.channels[1], realbot.nick + ' hi');
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(testbot.nick);
         testbot.buffer[testbot.channels[1]].should.containEql(testbot.nick);
@@ -75,7 +66,7 @@ describe('test bot', function() {
     it('should listen to part event', function(done) {
       this.timeout(40000);
       realbot.part(realbot.channels[0], 'gtg');
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(realbot.nick);
         testbot.buffer[testbot.channels[0]].should.containEql('gtg');
@@ -91,7 +82,7 @@ describe('test bot', function() {
     it('should listen to join event', function(done) {
       this.timeout(40000);
       realbot.join(realbot.channels[0]);
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(realbot.nick);
         testbot.buffer[testbot.channels[0]].should.containEql('joined');
@@ -115,10 +106,10 @@ describe('test bot', function() {
         }
       });
 
-      waitAlittle()
+      testbot.waitAlittle()
       .then(function(result) {
         testbot.say(testbot.channels[0], realbot.nick + ' what is irc?');
-        return waitAlittle();
+        return testbot.waitAlittle();
       })
       .then(function(result) {
         testbot.buffer[testbot.channels[0]].should.containEql(
