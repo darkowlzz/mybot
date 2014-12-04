@@ -6,7 +6,6 @@ var Q = require('q');
 var irc = require('irc');
 var _ = require('underscore');
 var Datastore = require('nedb');
-
 var PluginLoader = require('./pluginLoader');
 
 var DEFAULT_PLUGINS = ['intro', 'join', 'part', 'error'];
@@ -16,21 +15,22 @@ var DEFAULT_PLUGINS = ['intro', 'join', 'part', 'error'];
  * Bot class
  */
 function Bot(config) {
+  config = config || {};
   var that = this;
 
-  that.nick = config.nick || 'zoobot';
-  that.network = config.server || '127.0.0.1';
-  that.channels = config.channels;
-  that.extraPlugins = config.plugins || [];
+  that.nick = config.nick || 'mybot';
+  that.server = config.server || '127.0.0.1';
+  that.channels = config.channels || [];
+  that.debug = (!! config.debug) || false;
+  that.assemblePlugins(config.plugins);
   that.help = {};
   that.buffer = {};
-  that.plugins = DEFAULT_PLUGINS.concat(that.extraPlugins);
   that.channels.forEach(function(channel, index) {
     that.buffer[channel] = '';
   });
 
   // Create a client object
-  that.client = new irc.Client(that.network, that.nick, {
+  that.client = new irc.Client(that.server, that.nick, {
     autoConnect: false
   });
 
@@ -47,9 +47,12 @@ function Bot(config) {
 Bot.prototype.connectAll = function() {
   var that = this;
   return Q.Promise(function(resolve, reject) {
+    that.log('connecting to server', that.server);
     that.client.connect(5, function(input) {
+      that.log('connected to server', that.server);
       that.channels.forEach(function(channel, index, channels) {
         that.client.join(channel, function(input) {
+          that.log('joined ', channel);
           if (index == (channels.length - 1)) {
             resolve('done');
           }
@@ -62,9 +65,12 @@ Bot.prototype.connectAll = function() {
 // Asynchronous version of connectAll
 Bot.prototype.connectAllAsync = function(callback) {
   var that = this;
+  that.log('connecting to server', that.server);
   that.client.connect(5, function (input) {
+    that.log('connected to server', that.server);
     that.channels.forEach(function (channel, index, channels) {
       that.client.join(channel, function (input) {
+        that.log('joined ', channel);
         if (index === (channels.length - 1)) {
           if (!! callback)
             callback();
@@ -72,6 +78,34 @@ Bot.prototype.connectAllAsync = function(callback) {
       });
     });
   });
+};
+
+/**
+ * Logging method.
+ *
+ * @param {string} message - A string identifier
+ * @param {array|string} args - An array of data to be printed
+ */
+Bot.prototype.log = function (message, args) {
+  if (this.debug) {
+    console.log(message, args);
+  }
+};
+
+/**
+ * Assemble Plugins to be loaded.
+ *
+ * @param {array} plugins - An array of plugin names to be loaded.
+ */
+Bot.prototype.assemblePlugins = function (plugins) {
+  var that = this;
+  if (plugins === null) {
+    that.log('plugin is null', true);
+    that.plugins = [];
+  } else {
+    plugins = plugins || [];
+    that.plugins = DEFAULT_PLUGINS.concat(plugins);
+  }
 };
 
 /*--------------------------------------------------------------------------*/
