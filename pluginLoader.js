@@ -28,6 +28,8 @@ function PluginLoader(bot, moduleContext) {
  */
 PluginLoader.prototype.load = function(pluginName) {
   var that = this;
+  that.bot.log('loading plugin: ', pluginName);
+
   that.getPlugin(pluginName)
   .then(function (plugin) {
     // Store plugin help string
