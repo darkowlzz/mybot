@@ -29,12 +29,15 @@ function Bot(config) {
     that.buffer[channel] = '';
   });
 
+  // Create a client object
   that.client = new irc.Client(that.network, that.nick, {
     autoConnect: false
   });
 
+  // Create a plugin loader
   that.pluginLoader = new PluginLoader(that, module.parent);
 
+  // Load the plugins
   that.plugins.forEach(function(plugin) {
     that.pluginLoader.load(plugin);
   });
@@ -51,6 +54,21 @@ Bot.prototype.connectAll = function() {
             resolve('done');
           }
         });
+      });
+    });
+  });
+};
+
+// Asynchronous version of connectAll
+Bot.prototype.connectAllAsync = function(callback) {
+  var that = this;
+  that.client.connect(5, function (input) {
+    that.channels.forEach(function (channel, index, channels) {
+      that.client.join(channel, function (input) {
+        if (index === (channels.length - 1)) {
+          if (!! callback)
+            callback();
+        }
       });
     });
   });
