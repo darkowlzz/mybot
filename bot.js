@@ -43,381 +43,383 @@ function Bot(config) {
   });
 }
 
-// Connect to the server and channels, returns a Promise
-Bot.prototype.connectAll = function() {
-  var that = this;
-  return Q.Promise(function(resolve, reject) {
+Bot.prototype = {
+  // Connect to the server and channels, returns a Promise
+  connectAll: function() {
+    var that = this;
+    return Q.Promise(function(resolve, reject) {
+      that.log('connecting to server', that.server);
+      that.client.connect(5, function(input) {
+        that.log('connected to server', that.server);
+        that.channels.forEach(function(channel, index, channels) {
+          that.client.join(channel, function(input) {
+            that.log('joined ', channel);
+            if (index == (channels.length - 1)) {
+              resolve('done');
+            }
+          });
+        });
+      });
+    });
+  },
+
+  // Asynchronous version of connectAll
+  connectAllAsync: function(callback) {
+    var that = this;
     that.log('connecting to server', that.server);
-    that.client.connect(5, function(input) {
+    that.client.connect(5, function (input) {
       that.log('connected to server', that.server);
-      that.channels.forEach(function(channel, index, channels) {
-        that.client.join(channel, function(input) {
+      that.channels.forEach(function (channel, index, channels) {
+        that.client.join(channel, function (input) {
           that.log('joined ', channel);
-          if (index == (channels.length - 1)) {
-            resolve('done');
+          if (index === (channels.length - 1)) {
+            if (!! callback)
+              callback();
           }
         });
       });
     });
-  });
-};
+  },
 
-// Asynchronous version of connectAll
-Bot.prototype.connectAllAsync = function(callback) {
-  var that = this;
-  that.log('connecting to server', that.server);
-  that.client.connect(5, function (input) {
-    that.log('connected to server', that.server);
-    that.channels.forEach(function (channel, index, channels) {
-      that.client.join(channel, function (input) {
-        that.log('joined ', channel);
-        if (index === (channels.length - 1)) {
-          if (!! callback)
-            callback();
-        }
+  /**
+   * Logging method.
+   *
+   * @param {string} message - A string identifier
+   * @param {array|string} args - An array of data to be printed
+   */
+  log: function (message, args) {
+    if (this.debug) {
+      console.log(message, args);
+    }
+  },
+
+  /**
+   * Assemble Plugins to be loaded.
+   *
+   * @param {array} plugins - An array of plugin names to be loaded.
+   */
+  assemblePlugins: function (plugins) {
+    var that = this;
+    if (plugins === null) {
+      that.log('plugin is null', true);
+      that.plugins = [];
+    } else {
+      plugins = plugins || [];
+      that.plugins = DEFAULT_PLUGINS.concat(plugins);
+    }
+  },
+
+  /**
+   * Wait for some time.
+   *
+   * @param {number}[optional] time - Milliseconds to wait.
+   */
+  waitAlittle: function (time) {
+    time = time || 3000;
+    return Q.Promise(function (resolve, reject) {
+      Q.delay(time).then(function () {
+        resolve(true);
       });
     });
-  });
-};
+  },
 
-/**
- * Logging method.
- *
- * @param {string} message - A string identifier
- * @param {array|string} args - An array of data to be printed
- */
-Bot.prototype.log = function (message, args) {
-  if (this.debug) {
-    console.log(message, args);
-  }
-};
+  /*-------------------------------------------------------------------------*/
 
-/**
- * Assemble Plugins to be loaded.
- *
- * @param {array} plugins - An array of plugin names to be loaded.
- */
-Bot.prototype.assemblePlugins = function (plugins) {
-  var that = this;
-  if (plugins === null) {
-    that.log('plugin is null', true);
-    that.plugins = [];
-  } else {
-    plugins = plugins || [];
-    that.plugins = DEFAULT_PLUGINS.concat(plugins);
-  }
-};
+  // Join a channel
+  join: function(channel) {
+    var that = this;
+    that.client.join(channel);
+  },
 
-/**
- * Wait for some time.
- *
- * @param {number}[optional] time - Milliseconds to wait.
- */
-Bot.prototype.waitAlittle = function (time) {
-  time = time || 3000;
-  return Q.Promise(function (resolve, reject) {
-    Q.delay(time).then(function () {
-      resolve(true);
+  // Part from a channel
+  part: function(channel, msg) {
+    var that = this;
+    that.client.part(channel, msg);
+  },
+
+  // Send message to a channel
+  say: function(channel, msg) {
+    var that = this;
+    that.client.say(channel, msg);
+  },
+
+  // Send CTCP message to a channel
+  ctcp: function(channel, type, msg) {
+    var that = this;
+    that.client.ctcp(channel, type, msg);
+  },
+
+  // Send an action message to a channel
+  action: function(channel, msg) {
+    var that = this;
+    that.client.action(channel, msg);
+  },
+
+  // Send a notice to a channel
+  notice: function(channel, msg) {
+    var that = this;
+    that.client.notice(channel, msg);
+  },
+
+  // Send a whois to a channel
+  whois: function(nick, callback) {
+    var that = this;
+    that.client.whois(nick, function(nick) {
+      callback.call(that, nick);
     });
-  });
-};
+  },
 
-/*--------------------------------------------------------------------------*/
+  // Connect to the server
+  connect: function(retryCount, callback) {
+    var that = this;
+    that.client.connect(retryCount, function(input) {
+      callback.call(that, input);
+    });
+  },
 
-// Join a channel
-Bot.prototype.join = function(channel) {
-  var that = this;
-  that.client.join(channel);
-};
+  // Disconnect from the server
+  disconnect: function(message, callback) {
+    var that = this;
+    that.client.disconnect(message, function(input) {
+      callback.call(that, input);
+    });
+  },
 
-// Part from a channel
-Bot.prototype.part = function(channel, msg) {
-  var that = this;
-  that.client.part(channel, msg);
-};
+  // Kill the bot
+  kill: function() {
+    var that = this;
+    that.client.disconnect('killed');
+  },
 
-// Send message to a channel
-Bot.prototype.say = function(channel, msg) {
-  var that = this;
-  that.client.say(channel, msg);
-};
+  /*-------------------------------------------------------------------------*/
 
-// Send CTCP message to a channel
-Bot.prototype.ctcp = function(channel, type, msg) {
-  var that = this;
-  that.client.ctcp(channel, type, msg);
-};
+  /**
+   * Adds 'registered' event listener.
+   */
+  addRegisteredListener: function(callback) {
+    var that = this;
+    that.client.addListener('registered', function(message) {
+      callback.call(that, message);
+    });
+  },
 
-// Send an action message to a channel
-Bot.prototype.action = function(channel, msg) {
-  var that = this;
-  that.client.action(channel, msg);
-};
+  /**
+   * Adds 'motd' event listener.
+   */
+  addMotdListener: function(callback) {
+    var that = this;
+    that.client.addListener('motd', function(motd) {
+      callback.call(that, motd);
+    });
+  },
 
-// Send a notice to a channel
-Bot.prototype.notice = function(channel, msg) {
-  var that = this;
-  that.client.notice(channel, msg);
-};
+  /**
+   * Adds 'names' event listener.
+   */
+  addNamesListener: function (callback) {
+    var that = this;
+    that.client.addListener('names', function(channel, nick) {
+      callback.call(that, channel, nick);
+    });
+  },
 
-// Send a whois to a channel
-Bot.prototype.whois = function(nick, callback) {
-  var that = this;
-  that.client.whois(nick, function(nick) {
-    callback.call(that, nick);
-  });
-};
+  /**
+   * Adds 'topic' event listener.
+   */
+  addTopicListener: function (callback) {
+    var that = this;
+    that.client.addListener('topic', function(channel, topic, nick) {
+      callback.call(that, channel, topic, nick);
+    });
+  },
 
-// Connect to the server
-Bot.prototype.connect = function(retryCount, callback) {
-  var that = this;
-  that.client.connect(retryCount, function(input) {
-    callback.call(that, input);
-  });
-};
+  /**
+   * Adds 'join' event listener.
+   */
+  addJoinListener: function (callback) {
+    var that = this;
+    that.client.addListener('join', function(channel, nick) {
+      callback.call(that, channel, nick);
+    });
+  },
 
-// Disconnect from the server
-Bot.prototype.disconnect = function(message, callback) {
-  var that = this;
-  that.client.disconnect(message, function(input) {
-    callback.call(that, input);
-  });
-};
+  /**
+   * Adds 'part' event listener.
+   */
+  addPartListener: function (callback) {
+    var that = this;
+    that.client.addListener('part', function(channel, nick, reason) {
+      callback.call(that, channel, nick, reason);
+    });
+  },
 
-// Kill the bot
-Bot.prototype.kill = function() {
-  var that = this;
-  that.client.disconnect('killed');
-};
+  /**
+   * Adds 'quit' event listener.
+   */
+  addQuitListener: function (callback) {
+    var that = this;
+    that.client.addListener('quit', function(nick, reason, channels) {
+      callback.call(that, nick, reason, channels);
+    });
+  },
 
-/*---------------------------------------------------------------------------*/
+  /**
+   * Adds 'kick' event listener.
+   */
+  addKickListener: function (callback) {
+    var that = this;
+    that.client.addListener('kick', function(channel, nick, by, reason) {
+      callback.call(that, channel, nick, by, reason);
+    });
+  },
 
-/**
- * Adds 'registered' event listener.
- */
-Bot.prototype.addRegisteredListener = function(callback) {
-  var that = this;
-  that.client.addListener('registered', function(message) {
-    callback.call(that, message);
-  });
-};
+  /**
+   * Adds 'kill' event listener.
+   */
+  addKillListener: function (callback) {
+    var that = this;
+    that.client.addListener('kill', function(nick, reason, channels) {
+      callback.call(that, nick, reason, channels);
+    });
+  },
 
-/**
- * Adds 'motd' event listener.
- */
-Bot.prototype.addMotdListener = function(callback) {
-  var that = this;
-  that.client.addListener('motd', function(motd) {
-    callback.call(that, motd);
-  });
-};
+  /**
+   * Adds 'message' event listener.
+   */
+  addMessageListener: function(callback) {
+    var that = this;
+    that.client.addListener('message', function(nick, to, text) {
+      callback.call(that, nick, to, text);
+    });
+  },
 
-/**
- * Adds 'names' event listener.
- */
-Bot.prototype.addNamesListener = function (callback) {
-  var that = this;
-  that.client.addListener('names', function(channel, nick) {
-    callback.call(that, channel, nick);
-  });
-};
+  /**
+   * Adds 'notice' event listener.
+   */
+  addNoticeListener: function (callback) {
+    var that = this;
+    that.client.addListener('notice', function(nick, to, text) {
+      callback.call(that, nick, to, text);
+    });
+  },
 
-/**
- * Adds 'topic' event listener.
- */
-Bot.prototype.addTopicListener = function (callback) {
-  var that = this;
-  that.client.addListener('topic', function(channel, topic, nick) {
-    callback.call(that, channel, topic, nick);
-  });
-};
+  /**
+   * Adds 'ping' event listener.
+   */
+  addPingListener: function (callback) {
+    var that = this;
+    that.client.addListener('ping', function(server) {
+      callback.call(that, server);
+    });
+  },
 
-/**
- * Adds 'join' event listener.
- */
-Bot.prototype.addJoinListener = function (callback) {
-  var that = this;
-  that.client.addListener('join', function(channel, nick) {
-    callback.call(that, channel, nick);
-  });
-};
+  /**
+   * Adds 'pm' event listener.
+   */
+  addPmListener: function (callback) {
+    var that = this;
+    that.client.addListener('pm', function(nick, text) {
+      callback.call(that, nick, text);
+    });
+  },
 
-/**
- * Adds 'part' event listener.
- */
-Bot.prototype.addPartListener = function (callback) {
-  var that = this;
-  that.client.addListener('part', function(channel, nick, reason) {
-    callback.call(that, channel, nick, reason);
-  });
-};
+  /**
+   * Adds 'ctcp' event listener.
+   */
+  addCtcpListener: function (callback) {
+    var that = this;
+    that.client.addListener('ctcp', function(from, to, text, type) {
+      callback.call(that, from, to, text, type);
+    });
+  },
 
-/**
- * Adds 'quit' event listener.
- */
-Bot.prototype.addQuitListener = function (callback) {
-  var that = this;
-  that.client.addListener('quit', function(nick, reason, channels) {
-    callback.call(that, nick, reason, channels);
-  });
-};
+  /**
+   * Adds 'nick' event listener.
+   */
+  addNickListener: function (callback) {
+    var that = this;
+    that.client.addListener('nick', function(oldnick, newnick, channels) {
+      callback.call(that, oldnick, newnick, channels);
+    });
+  },
 
-/**
- * Adds 'kick' event listener.
- */
-Bot.prototype.addKickListener = function (callback) {
-  var that = this;
-  that.client.addListener('kick', function(channel, nick, by, reason) {
-    callback.call(that, channel, nick, by, reason);
-  });
-};
+  /**
+   * Adds 'invite' event listener.
+   */
+  addInviteListener: function (callback) {
+    var that = this;
+    that.client.addListener('invite', function(channel, from) {
+      callback.call(that, channel, from);
+    });
+  },
 
-/**
- * Adds 'kill' event listener.
- */
-Bot.prototype.addKillListener = function (callback) {
-  var that = this;
-  that.client.addListener('kill', function(nick, reason, channels) {
-    callback.call(that, nick, reason, channels);
-  });
-};
+  /**
+   * Adds '+mode' event listener.
+   */
+  addPlusModeListener: function (callback) {
+    var that = this;
+    that.client.addListener('+mode', function(channel, by, mode, argument) {
+      callback.call(that, channel, by, mode, argument);
+    });
+  },
 
-/**
- * Adds 'message' event listener.
- */
-Bot.prototype.addMessageListener = function(callback) {
-  var that = this;
-  that.client.addListener('message', function(nick, to, text) {
-    callback.call(that, nick, to, text);
-  });
-};
+  /**
+   * Adds '-mode' event listener.
+   */
+  addMinusModeListener: function (callback) {
+    var that = this;
+    that.client.addListener('-mode', function(channel, by, mode, argument) {
+      callback.call(that, channel, by, mode, argument);
+    });
+  },
 
-/**
- * Adds 'notice' event listener.
- */
-Bot.prototype.addNoticeListener = function (callback) {
-  var that = this;
-  that.client.addListener('notice', function(nick, to, text) {
-    callback.call(that, nick, to, text);
-  });
-};
+  /**
+   * Adds 'whois' event listener.
+   */
+  addWhoisListener: function (callback) {
+    var that = this;
+    that.client.addListener('whois', function(info) {
+      callback.call(that, info);
+    });
+  },
 
-/**
- * Adds 'ping' event listener.
- */
-Bot.prototype.addPingListener = function (callback) {
-  var that = this;
-  that.client.addListener('ping', function(server) {
-    callback.call(that, server);
-  });
-};
+  /**
+   * Adds 'channellist_start' event listener.
+   */
+  addChannellistStartListener: function (callback) {
+    var that = this;
+    that.client.addListener('channellist_start', function() {
+      callback.call(that);
+    });
+  },
 
-/**
- * Adds 'pm' event listener.
- */
-Bot.prototype.addPmListener = function (callback) {
-  var that = this;
-  that.client.addListener('pm', function(nick, text) {
-    callback.call(that, nick, text);
-  });
-};
+  /**
+   * Adds 'channellist_item' event listener.
+   */
+  addChannellistItemListener: function (callback) {
+    var that = this;
+    that.client.addListener('channellist_item', function(channel_info) {
+      callback.call(that, channel_info);
+    });
+  },
 
-/**
- * Adds 'ctcp' event listener.
- */
-Bot.prototype.addCtcpListener = function (callback) {
-  var that = this;
-  that.client.addListener('ctcp', function(from, to, text, type) {
-    callback.call(that, from, to, text, type);
-  });
-};
+  /**
+   * Adds 'channellist' event listener.
+   */
+  addChannellistListener: function (callback) {
+    var that = this;
+    that.client.addListener('channellist', function(channel_list) {
+      callback.call(that, channel_list);
+    });
+  },
 
-/**
- * Adds 'nick' event listener.
- */
-Bot.prototype.addNickListener = function (callback) {
-  var that = this;
-  that.client.addListener('nick', function(oldnick, newnick, channels) {
-    callback.call(that, oldnick, newnick, channels);
-  });
-};
-
-/**
- * Adds 'invite' event listener.
- */
-Bot.prototype.addInviteListener = function (callback) {
-  var that = this;
-  that.client.addListener('invite', function(channel, from) {
-    callback.call(that, channel, from);
-  });
-};
-
-/**
- * Adds '+mode' event listener.
- */
-Bot.prototype.addPlusModeListener = function (callback) {
-  var that = this;
-  that.client.addListener('+mode', function(channel, by, mode, argument) {
-    callback.call(that, channel, by, mode, argument);
-  });
-};
-
-/**
- * Adds '-mode' event listener.
- */
-Bot.prototype.addMinusModeListener = function (callback) {
-  var that = this;
-  that.client.addListener('-mode', function(channel, by, mode, argument) {
-    callback.call(that, channel, by, mode, argument);
-  });
-};
-
-/**
- * Adds 'whois' event listener.
- */
-Bot.prototype.addWhoisListener = function (callback) {
-  var that = this;
-  that.client.addListener('whois', function(info) {
-    callback.call(that, info);
-  });
-};
-
-/**
- * Adds 'channellist_start' event listener.
- */
-Bot.prototype.addChannellistStartListener = function (callback) {
-  var that = this;
-  that.client.addListener('channellist_start', function() {
-    callback.call(that);
-  });
-};
-
-/**
- * Adds 'channellist_item' event listener.
- */
-Bot.prototype.addChannellistItemListener = function (callback) {
-  var that = this;
-  that.client.addListener('channellist_item', function(channel_info) {
-    callback.call(that, channel_info);
-  });
-};
-
-/**
- * Adds 'channellist' event listener.
- */
-Bot.prototype.addChannellistListener = function (callback) {
-  var that = this;
-  that.client.addListener('channellist', function(channel_list) {
-    callback.call(that, channel_list);
-  });
-};
-
-/**
- * Adds 'error' event listener.
- */
-Bot.prototype.addErrorListener = function (callback) {
-  var that = this;
-  that.client.addListener('error', function(message) {
-    callback.call(that, message);
-  });
+  /**
+   * Adds 'error' event listener.
+   */
+  addErrorListener: function (callback) {
+    var that = this;
+    that.client.addListener('error', function(message) {
+      callback.call(that, message);
+    });
+  }
 };
