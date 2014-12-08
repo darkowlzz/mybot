@@ -35,10 +35,12 @@ PluginLoader.prototype = {
     .then(function (plugin) {
       // Store plugin help string
       that.bot.help[plugin.name] = plugin.help || '';
-      if (plugin.type === 'main') {
+      // Run any main part of the plugin
+      if (!! plugin.main) {
         plugin.main(that.bot);
       }
-      else if (plugin.type === 'event') {
+      // Attach any event part of the plugin
+      if (plugin.type === 'event') {
         that.plugToEvent(plugin);
       }
     })
