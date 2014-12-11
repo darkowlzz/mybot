@@ -32,7 +32,7 @@ exports.message = function (from, to, text) {
                      'loaded plugins as\n' +
                      '<mynick> !help <pluginName>\n';
       var listPlugins = 'Following are the available plugins:\n';
-      self.plugins.forEach(function(plugin) {
+      self.loadedPlugins.forEach(function(plugin) {
         listPlugins += plugin + ' ';
       })
       self.say(to, from + ': ' + helpText + listPlugins);

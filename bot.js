@@ -25,6 +25,7 @@ function Bot(config) {
   that.assemblePlugins(config.plugins);
   that.help = {};
   that.buffer = {};
+  that.loadedPlugins = [];
   that.channels.forEach(function(channel, index) {
     that.buffer[channel] = '';
   });

@@ -33,6 +33,7 @@ PluginLoader.prototype = {
 
     that.getPlugin(pluginName)
     .then(function (plugin) {
+      that.bot.loadedPlugins.push(plugin.name);
       // Store plugin help string
       that.bot.help[plugin.name] = plugin.help || '';
       // Run any main part of the plugin
