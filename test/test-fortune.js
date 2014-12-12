@@ -11,7 +11,7 @@ var config1 = {
   nick: nick1,
   channels: ['#hello'],
   server: '127.0.0.1',
-  plugins: ['fortune']
+  plugins: ['mybot-fortune']
 };
 
 var config2 = {

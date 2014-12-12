@@ -11,7 +11,7 @@ var config1 = {
   nick: nick1,
   channels: ['#hello'],
   server: '127.0.0.1',
-  plugins: ['remember', 'fortune']
+  plugins: ['remember', 'mybot-fortune']
 };
 
 var config2 = {
@@ -52,8 +52,8 @@ describe('test plugins', function() {
 
   describe('test plugins', function() {
     it('plugins should be present', function() {
-      realbot.plugins.should.containEql('fortune');
-      realbot.plugins.should.containEql('remember');
+      realbot.loadedPlugins.should.containEql('fortune');
+      realbot.loadedPlugins.should.containEql('remember');
     });
 
     it('should list loaded plugins', function(done) {
